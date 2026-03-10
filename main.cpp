@@ -197,17 +197,18 @@ int main()
 
                 bool moved=false;
 
+                // FIXED KEY MAPPING
                 if(key->code==sf::Keyboard::Key::Left)
                     moved=move(board,0,score);
 
                 if(key->code==sf::Keyboard::Key::Up)
-                    moved=move(board,1,score);
+                    moved=move(board,3,score);
 
                 if(key->code==sf::Keyboard::Key::Right)
                     moved=move(board,2,score);
 
                 if(key->code==sf::Keyboard::Key::Down)
-                    moved=move(board,3,score);
+                    moved=move(board,1,score);
 
                 if(moved)
                 {
