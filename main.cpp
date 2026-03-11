@@ -135,6 +135,7 @@ sf::Color tileColor(int v)
         case 1024: return sf::Color(237,197,63);
         case 2048: return sf::Color(237,194,46);
     }
+
     return sf::Color(200,200,200);
 }
 
@@ -153,7 +154,7 @@ int main()
     sf::Font font;
     if(!font.openFromFile("assets/fonts/fonts/arial.ttf"))
     {
-        std::cout<<"Error loading font\n";
+        std::cout<<"Font loading failed\n";
         return -1;
     }
 
@@ -197,7 +198,6 @@ int main()
 
                 bool moved=false;
 
-                // FIXED KEY MAPPING
                 if(key->code==sf::Keyboard::Key::Left)
                     moved=move(board,0,score);
 
@@ -230,10 +230,10 @@ int main()
 
         if(startScreen)
         {
-            sf::Text t(font,"2048\nPress Any Key",50);
-            t.setFillColor(sf::Color::Black);
-            t.setPosition({120,300});
-            window.draw(t);
+            sf::Text start(font,"2048\nPress Any Key",50);
+            start.setFillColor(sf::Color::Black);
+            start.setPosition({120,300});
+            window.draw(start);
             window.display();
             continue;
         }
@@ -245,6 +245,7 @@ int main()
                 sf::RectangleShape rect({cell,cell});
                 rect.setPosition({pad+j*(cell+pad),pad+i*(cell+pad)+120});
                 rect.setFillColor(tileColor(board[i][j]));
+
                 window.draw(rect);
 
                 if(board[i][j]!=0)
@@ -262,16 +263,16 @@ int main()
         scoreText.setPosition({20,20});
         window.draw(scoreText);
 
-        sf::Text best(font,"Best: "+std::to_string(bestScore),35);
-        best.setFillColor(sf::Color::Black);
-        best.setPosition({350,20});
-        window.draw(best);
+        sf::Text bestText(font,"Best: "+std::to_string(bestScore),35);
+        bestText.setFillColor(sf::Color::Black);
+        bestText.setPosition({350,20});
+        window.draw(bestText);
 
         if(gameOver)
         {
-            sf::Text over(font,"GAME OVER\nPress R to Restart",40);
+            sf::Text over(font,"GAME OVER\nPress R",40);
             over.setFillColor(sf::Color::Red);
-            over.setPosition({120,300});
+            over.setPosition({150,320});
             window.draw(over);
         }
 
