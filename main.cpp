@@ -119,10 +119,12 @@ bool canMove(Board board)
     return false;
 }
 
+// 🎨 Improved Color Palette
 sf::Color tileColor(int v)
 {
     switch(v)
     {
+        case 0: return sf::Color(205,193,180);
         case 2: return sf::Color(238,228,218);
         case 4: return sf::Color(237,224,200);
         case 8: return sf::Color(242,177,121);
@@ -135,8 +137,14 @@ sf::Color tileColor(int v)
         case 1024: return sf::Color(237,197,63);
         case 2048: return sf::Color(237,194,46);
     }
+    return sf::Color(60,58,50);
+}
 
-    return sf::Color(200,200,200);
+// Text color for contrast
+sf::Color textColor(int v)
+{
+    if(v <= 4) return sf::Color(119,110,101); // dark text
+    return sf::Color::White; // light text
 }
 
 void resetGame(Board& board,int& score)
@@ -226,17 +234,24 @@ int main()
             }
         }
 
+        // 🎨 Background
         window.clear(sf::Color(250,248,239));
 
         if(startScreen)
         {
             sf::Text start(font,"2048\nPress Any Key",50);
-            start.setFillColor(sf::Color::Black);
+            start.setFillColor(sf::Color(50,50,50));
             start.setPosition({120,300});
             window.draw(start);
             window.display();
             continue;
         }
+
+        // Board background
+        sf::RectangleShape boardBg({550,550});
+        boardBg.setFillColor(sf::Color(187,173,160));
+        boardBg.setPosition({10,120});
+        window.draw(boardBg);
 
         for(int i=0;i<4;i++)
         {
@@ -251,7 +266,7 @@ int main()
                 if(board[i][j]!=0)
                 {
                     sf::Text text(font,std::to_string(board[i][j]),40);
-                    text.setFillColor(sf::Color::Black);
+                    text.setFillColor(textColor(board[i][j]));
                     text.setPosition({pad+j*(cell+pad)+40,pad+i*(cell+pad)+150});
                     window.draw(text);
                 }
@@ -259,12 +274,12 @@ int main()
         }
 
         sf::Text scoreText(font,"Score: "+std::to_string(score),35);
-        scoreText.setFillColor(sf::Color::Black);
+        scoreText.setFillColor(sf::Color(50,50,50));
         scoreText.setPosition({20,20});
         window.draw(scoreText);
 
         sf::Text bestText(font,"Best: "+std::to_string(bestScore),35);
-        bestText.setFillColor(sf::Color::Black);
+        bestText.setFillColor(sf::Color(50,50,50));
         bestText.setPosition({350,20});
         window.draw(bestText);
 
