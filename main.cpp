@@ -4,6 +4,7 @@
 #include <random>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 using Board = std::array<std::array<int,4>,4>;
 
@@ -12,28 +13,27 @@ std::mt19937 gen(rd());
 
 int bestScore = 0;
 
-void loadBestScore()
-{
+// ================= SCORE =================
+void loadBestScore() {
     std::ifstream file("bestscore.txt");
-    if(file) file >> bestScore;
+    if (file) file >> bestScore;
 }
 
-void saveBestScore()
-{
+void saveBestScore() {
     std::ofstream file("bestscore.txt");
     file << bestScore;
 }
 
-void spawnTile(Board& board)
-{
+// ================= TILE SPAWN =================
+void spawnTile(Board& board) {
     std::vector<std::pair<int,int>> empty;
 
-    for(int i=0;i<4;i++)
-        for(int j=0;j<4;j++)
-            if(board[i][j]==0)
+    for (int i=0;i<4;i++)
+        for (int j=0;j<4;j++)
+            if (board[i][j]==0)
                 empty.push_back({i,j});
 
-    if(empty.empty()) return;
+    if (empty.empty()) return;
 
     std::uniform_int_distribution<> dist(0, empty.size()-1);
     auto pos = empty[dist(gen)];
@@ -42,28 +42,24 @@ void spawnTile(Board& board)
     board[pos.first][pos.second] = (val(gen)==0)?4:2;
 }
 
-bool moveLeft(Board& board,int& score)
-{
+// ================= MOVE LEFT =================
+bool moveLeft(Board& board,int& score) {
     bool moved=false;
 
-    for(int i=0;i<4;i++)
-    {
-        for(int j=1;j<4;j++)
-        {
+    for(int i=0;i<4;i++) {
+        for(int j=1;j<4;j++) {
             if(board[i][j]==0) continue;
 
             int col=j;
 
-            while(col>0 && board[i][col-1]==0)
-            {
+            while(col>0 && board[i][col-1]==0) {
                 board[i][col-1]=board[i][col];
                 board[i][col]=0;
                 col--;
                 moved=true;
             }
 
-            if(col>0 && board[i][col-1]==board[i][col])
-            {
+            if(col>0 && board[i][col-1]==board[i][col]) {
                 board[i][col-1]*=2;
                 score+=board[i][col-1];
                 board[i][col]=0;
@@ -71,12 +67,11 @@ bool moveLeft(Board& board,int& score)
             }
         }
     }
-
     return moved;
 }
 
-void rotate(Board& board)
-{
+// ================= ROTATE =================
+void rotate(Board& board) {
     Board temp=board;
 
     for(int i=0;i<4;i++)
@@ -84,14 +79,12 @@ void rotate(Board& board)
             board[i][j]=temp[3-j][i];
 }
 
-bool move(Board& board,int dir,int& score)
-{
-    bool moved;
-
+// ================= MOVE =================
+bool move(Board& board,int dir,int& score) {
     for(int i=0;i<dir;i++)
         rotate(board);
 
-    moved=moveLeft(board,score);
+    bool moved = moveLeft(board,score);
 
     for(int i=0;i<(4-dir)%4;i++)
         rotate(board);
@@ -99,8 +92,8 @@ bool move(Board& board,int dir,int& score)
     return moved;
 }
 
-bool canMove(Board board)
-{
+// ================= GAME OVER =================
+bool canMove(Board board) {
     for(int i=0;i<4;i++)
         for(int j=0;j<4;j++)
             if(board[i][j]==0)
@@ -119,11 +112,9 @@ bool canMove(Board board)
     return false;
 }
 
-// 🎨 Improved Color Palette
-sf::Color tileColor(int v)
-{
-    switch(v)
-    {
+// ================= COLORS =================
+sf::Color tileColor(int v) {
+    switch(v) {
         case 0: return sf::Color(205,193,180);
         case 2: return sf::Color(238,228,218);
         case 4: return sf::Color(237,224,200);
@@ -140,28 +131,29 @@ sf::Color tileColor(int v)
     return sf::Color(60,58,50);
 }
 
-// Text color for contrast
-sf::Color textColor(int v)
-{
-    if(v <= 4) return sf::Color(119,110,101); // dark text
-    return sf::Color::White; // light text
+sf::Color textColor(int v) {
+    return (v<=4)?sf::Color(119,110,101):sf::Color::White;
 }
 
-void resetGame(Board& board,int& score)
-{
+// ================= RESET =================
+void resetGame(Board& board,int& score) {
     board={0};
     score=0;
     spawnTile(board);
     spawnTile(board);
 }
 
-int main()
-{
-    sf::RenderWindow window(sf::VideoMode({600,700}),"2048");
+// ================= MAIN =================
+int main() {
+
+    // ⭐ FULLSCREEN READY (YOU CAN CHANGE BACK IF YOU WANT)
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(),
+                            "2048",
+                            sf::Style::Default);
+    window.setFramerateLimit(60);
 
     sf::Font font;
-    if(!font.openFromFile("assets/fonts/fonts/arial.ttf"))
-    {
+    if(!font.openFromFile("assets/fonts/fonts/arial.ttf")) {
         std::cout<<"Font loading failed\n";
         return -1;
     }
@@ -176,28 +168,26 @@ int main()
 
     resetGame(board,score);
 
-    float cell=120;
-    float pad=10;
+    const float CELL = 120.f;
+    const float GAP = 10.f;
 
-    while(window.isOpen())
-    {
-        while(auto event=window.pollEvent())
-        {
+    while(window.isOpen()) {
+
+        while(auto event=window.pollEvent()) {
+
             if(event->is<sf::Event::Closed>())
                 window.close();
 
-            if(event->is<sf::Event::KeyPressed>())
-            {
+            if(event->is<sf::Event::KeyPressed>()) {
+
                 auto key=event->getIf<sf::Event::KeyPressed>();
 
-                if(startScreen)
-                {
+                if(startScreen) {
                     startScreen=false;
                     continue;
                 }
 
-                if(key->code==sf::Keyboard::Key::R)
-                {
+                if(key->code==sf::Keyboard::Key::R) {
                     resetGame(board,score);
                     gameOver=false;
                 }
@@ -218,12 +208,10 @@ int main()
                 if(key->code==sf::Keyboard::Key::Down)
                     moved=move(board,1,score);
 
-                if(moved)
-                {
+                if(moved) {
                     spawnTile(board);
 
-                    if(score>bestScore)
-                    {
+                    if(score>bestScore) {
                         bestScore=score;
                         saveBestScore();
                     }
@@ -234,63 +222,112 @@ int main()
             }
         }
 
-        // 🎨 Background
         window.clear(sf::Color(250,248,239));
 
-        if(startScreen)
-        {
+        float w = window.getSize().x;
+        float h = window.getSize().y;
+
+        // ================= START SCREEN =================
+        if(startScreen) {
             sf::Text start(font,"2048\nPress Any Key",50);
             start.setFillColor(sf::Color(50,50,50));
-            start.setPosition({120,300});
+
+            sf::FloatRect b=start.getLocalBounds();
+
+            start.setPosition({
+                (w - b.size.x)/2.f,
+                (h - b.size.y)/2.f
+            });
+
             window.draw(start);
             window.display();
             continue;
         }
 
-        // Board background
-        sf::RectangleShape boardBg({550,550});
+        // ======================================================
+        // ⭐ FIXED RESPONSIVE CENTER SYSTEM (FINAL VERSION)
+        // ======================================================
+
+        float scale = std::min(w / 900.f, h / 800.f);
+
+        float CELL_S = CELL * scale;
+        float GAP_S  = GAP * scale;
+
+        float boardSize = 4 * CELL_S + 3 * GAP_S;
+
+        float UI_H = 90.f * scale;
+        float GAP_UI = 20.f * scale;
+
+        float totalH = UI_H + GAP_UI + boardSize;
+
+        float originX = (w - boardSize) / 2.f;
+        float originY = (h - totalH) / 2.f + UI_H;
+
+        float uiY = (h - totalH) / 2.f;
+
+        // ================= SCORE =================
+        sf::Text scoreText(font,"Score: "+std::to_string(score),30);
+        scoreText.setFillColor(sf::Color(50,50,50));
+        scoreText.setPosition({originX, uiY});
+        window.draw(scoreText);
+
+        sf::Text bestText(font,"Best: "+std::to_string(bestScore),30);
+        bestText.setFillColor(sf::Color(50,50,50));
+        bestText.setPosition({originX + 220, uiY});
+        window.draw(bestText);
+
+        // ================= BOARD =================
+        sf::RectangleShape boardBg({boardSize+20, boardSize+20});
         boardBg.setFillColor(sf::Color(187,173,160));
-        boardBg.setPosition({10,120});
+        boardBg.setPosition({originX-10, originY-10});
         window.draw(boardBg);
 
-        for(int i=0;i<4;i++)
-        {
-            for(int j=0;j<4;j++)
-            {
-                sf::RectangleShape rect({cell,cell});
-                rect.setPosition({pad+j*(cell+pad),pad+i*(cell+pad)+120});
-                rect.setFillColor(tileColor(board[i][j]));
+        // ================= TILES =================
+        for(int i=0;i<4;i++) {
+            for(int j=0;j<4;j++) {
 
+                float x = originX + j*(CELL_S + GAP_S);
+                float y = originY + i*(CELL_S + GAP_S);
+
+                sf::RectangleShape rect({CELL_S,CELL_S});
+                rect.setPosition({x,y});
+                rect.setFillColor(tileColor(board[i][j]));
                 window.draw(rect);
 
-                if(board[i][j]!=0)
-                {
-                    sf::Text text(font,std::to_string(board[i][j]),40);
+                if(board[i][j]!=0) {
+
+                    sf::Text text(font,std::to_string(board[i][j]),40 * scale);
                     text.setFillColor(textColor(board[i][j]));
-                    text.setPosition({pad+j*(cell+pad)+40,pad+i*(cell+pad)+150});
+
+                    sf::FloatRect b = text.getLocalBounds();
+
+                    text.setPosition({
+                        x + (CELL_S/2.f) - b.size.x/2.f,
+                        y + (CELL_S/2.f) - b.size.y
+                    });
+
                     window.draw(text);
                 }
             }
         }
 
-        sf::Text scoreText(font,"Score: "+std::to_string(score),35);
-        scoreText.setFillColor(sf::Color(50,50,50));
-        scoreText.setPosition({20,20});
-        window.draw(scoreText);
-
-        sf::Text bestText(font,"Best: "+std::to_string(bestScore),35);
-        bestText.setFillColor(sf::Color(50,50,50));
-        bestText.setPosition({350,20});
-        window.draw(bestText);
-
-        if(gameOver)
-        {
-            sf::Text over(font,"GAME OVER\nPress R",40);
+        // ================= GAME OVER =================
+        if(gameOver) {
+            sf::Text over(font,"GAME OVER\nPress R",50);
             over.setFillColor(sf::Color::Red);
-            over.setPosition({150,320});
+
+            sf::FloatRect b=over.getLocalBounds();
+
+            over.setPosition({
+                (w - b.size.x)/2.f,
+                (h - b.size.y)/2.f
+            });
+
             window.draw(over);
         }
 
         window.display();
     }
+
+    return 0;
 }
